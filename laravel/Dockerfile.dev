@@ -1,0 +1,33 @@
+FROM php:8.4-fpm
+
+# Install system dependencies
+RUN apt update && apt install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    sqlite3 \
+    libsqlite3-dev
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo_sqlite mbstring exif pcntl bcmath gd
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# Copy only composer files first for better caching
+COPY src/laravel/composer.* ./
+
+# Install dependencies using cache
+RUN composer install --no-scripts --no-autoloader
+
+# Copy the rest of the application
+COPY src/laravel .
+
+# Generate autoload files
+RUN composer dump-autoload

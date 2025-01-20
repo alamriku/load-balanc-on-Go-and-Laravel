@@ -1,0 +1,33 @@
+services:
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "9090:80"
+    volumes:
+      - ./src/laravel:/var/www/html
+    depends_on:
+      - laravel
+      - go
+
+  laravel:
+    build:
+      context: .
+      dockerfile: ./laravel/Dockerfile.dev
+    expose:
+      - "9000"
+    volumes:
+      - ./src/laravel:/var/www/html
+      - sqlite_data:/var/www/html/database
+
+  go:
+    build:
+      context: .
+      dockerfile: ./go/Dockerfile.dev
+    volumes:
+      - ./src/go:/app
+    ports:
+      - "8080:8080"
+
+volumes:
+  sqlite_data:

@@ -1,0 +1,27 @@
+FROM golang:1.23.5-alpine
+
+WORKDIR /app
+
+# Install build essentials
+RUN apk add --no-cache build-base
+
+# First, let's copy ONLY your go.mod and go.sum
+COPY src/go/go.mod .
+# Only copy go.sum if it exists
+# COPY src/go/go.sum* ./ 2>/dev/null || true
+
+# Download dependencies
+RUN go mod download
+
+# Now copy your main.go
+COPY src/go/main.go .
+
+# Build with verbose output
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o main main.go
+
+# Make sure the binary is executable
+RUN chmod +x main
+
+EXPOSE 8080
+
+CMD ["go", "run", "main.go"]
